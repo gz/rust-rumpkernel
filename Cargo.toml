@@ -7,6 +7,8 @@ description = "Rumpkernel as a crate"
 readme = "README.md"
 license = "MIT"
 build = "build.rs"
+homepage = "https://github.com/gz/rust-rumpkernel"
+repository = "https://github.com/gz/rust-rumpkernel"
 
 [build-dependencies]
 git2 = "0.8"
