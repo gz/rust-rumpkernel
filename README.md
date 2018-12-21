@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/gz/rust-rumpkernel.svg)]
+![Build Status](https://travis-ci.org/gz/rust-rumpkernel.svg)
 
 # Rumpkernel
 
