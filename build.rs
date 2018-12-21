@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use git2::Repository;
+use num_cpus;
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
@@ -49,7 +50,13 @@ fn main() {
         println!("BUILD {:?}", out_dir);
         env::set_var("TARGET", "x86_64-netbsd");
         Command::new("./buildrump.sh")
-            .args(&["-k", "-F", r#"CFLAGS=-Wimplicit-fallthrough=0"#])
+            .args(&[
+                "-k",
+                "-j",
+                format!("{}", num_cpus::get()).as_str(),
+                "-F",
+                r#"CFLAGS=-Wimplicit-fallthrough=0"#,
+            ])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
