@@ -25,6 +25,12 @@ fn main() {
             .exists()
         && out_dir_path
             .join("obj/dest.stage/usr/lib/librumpnet.so")
+            .exists()
+        && out_dir_path
+            .join("obj/dest.stage/usr/lib/librumpfs_tmpfs.so")
+            .exists()
+        && out_dir_path
+            .join("obj/dest.stage/usr/lib/librumpvfs.so")
             .exists();
 
     if !libs_built {
@@ -49,11 +55,18 @@ fn main() {
 
         println!("BUILD {:?}", out_dir);
         env::set_var("TARGET", "x86_64-netbsd");
+        env::set_var("MKSTATICLIB", "yes");
+
+        // For options see also:
+        // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
+        // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
         Command::new("./buildrump.sh")
             .args(&[
                 "-k",
                 "-j",
                 format!("{}", num_cpus::get()).as_str(),
+                "-V",
+                r#"RUMP_KERNEL_IS_LIBC=1"#,
                 "-F",
                 r#"CFLAGS=-Wimplicit-fallthrough=0"#,
             ])
@@ -73,4 +86,8 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rumpnet_netinet");
     println!("cargo:rustc-link-lib=static=rumpnet_net");
     println!("cargo:rustc-link-lib=static=rumpnet");
+    println!("cargo:rustc-link-lib=static=rumpvfs");
+    println!("cargo:rustc-link-lib=static=rumpfs_tmpfs");
+    //println!("cargo:rustc-link-lib=static=rumpfs_kernfs");
+    //println!("cargo:rustc-link-lib=static=rumpfs_null");
 }
