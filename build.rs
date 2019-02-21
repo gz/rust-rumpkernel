@@ -57,19 +57,29 @@ fn main() {
         env::set_var("TARGET", "x86_64-netbsd");
         env::set_var("MKSTATICLIB", "yes");
 
+        let cpus = format!("{}", num_cpus::get());
+        let mut options = vec![
+            "-k",
+            "-j",
+            cpus.as_str(),
+            "-F",
+            r#"CFLAGS=-Wimplicit-fallthrough=0"#,
+        ];
+
+        let target_os = env::var("CARGO_CFG_TARGET_OS");
+        match target_os.as_ref().map(|x| &**x) {
+            Ok("none") => {
+                options.push("-V");
+                options.push(r#"RUMP_KERNEL_IS_LIBC=1"#)
+            }
+            _ => {}
+        }
+
         // For options see also:
         // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
         // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
         Command::new("./buildrump.sh")
-            .args(&[
-                "-k",
-                "-j",
-                format!("{}", num_cpus::get()).as_str(),
-                "-V",
-                r#"RUMP_KERNEL_IS_LIBC=1"#,
-                "-F",
-                r#"CFLAGS=-Wimplicit-fallthrough=0"#,
-            ])
+            .args(options.as_slice())
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
