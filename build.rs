@@ -5,33 +5,24 @@ use std::process::Command;
 use git2::Repository;
 use num_cpus;
 
+fn artefacts_built(build_dir: &Path) -> bool {
+    build_dir.join("rump/lib/librumpdev_bpf.so").exists()
+        && build_dir.join("rump/lib/librumpnet_config.so").exists()
+        && build_dir.join("rump/lib/librumpnet_netinet.so").exists()
+        && build_dir.join("rump/lib/librumpnet_net.so").exists()
+        && build_dir.join("rump/lib/librumpnet.so").exists()
+        && build_dir.join("rump/lib/librumpfs_tmpfs.so").exists()
+        && build_dir.join("rump/lib/librumpvfs.so").exists()
+        && build_dir.join("rump/lib/librumpdev_pci.so").exists()
+        && build_dir.join("rump/lib/librumpdev_pci_if_iwn.so").exists()
+}
+
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir_path = PathBuf::from(out_dir.clone());
 
     println!("OUT_DIR {:?}", out_dir);
-
-    let libs_built = out_dir_path
-        .join("obj/dest.stage/usr/lib/librumpdev_bpf.so")
-        .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpnet_config.so")
-            .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpnet_netinet.so")
-            .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpnet_net.so")
-            .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpnet.so")
-            .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpfs_tmpfs.so")
-            .exists()
-        && out_dir_path
-            .join("obj/dest.stage/usr/lib/librumpvfs.so")
-            .exists();
+    let libs_built = artefacts_built(out_dir_path.as_path());
 
     if !libs_built {
         println!("RMDIR {:?}", out_dir);
@@ -83,21 +74,40 @@ fn main() {
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
+
+        println!("BUILD PCI {:?}", out_dir);
+        println!("OUT_DIR {:?}", out_dir);
+
+        let rump_top = out_dir_path.join("src/sys/rump/");
+        let mkconfig = out_dir_path.join("obj/tooldir/mk.conf");
+        let toolflags = out_dir_path.join("obj/tooldir/toolchain-conf.mk");
+        assert!(rump_top.exists());
+        assert!(mkconfig.exists());
+        assert!(toolflags.exists());
+
+        env::set_var("TOPRUMP", rump_top.as_path());
+        env::set_var("RUMPRUN_MKCONF", mkconfig.as_path());
+        env::set_var("BUILDRUMP_TOOLFLAGS", toolflags.as_path());
+
+        let rumpmake = out_dir_path.join("obj/tooldir/rumpmake");
+        assert!(rumpmake.exists());
+
+        Command::new(rumpmake.as_path())
+            .args(&["obj", "dependall", "install"])
+            .current_dir(&Path::new("./pci_build"))
+            .status()
+            .unwrap();
     }
 
-    println!(
-        "cargo:rustc-link-search=native={}/obj/dest.stage/usr/lib/",
-        out_dir
-    );
+    assert!(artefacts_built(out_dir_path.as_path()));
+    println!("cargo:rustc-link-search=native={}/rump/lib", out_dir);
 
-    println!("cargo:rustc-link-lib=static=rump");
-    println!("cargo:rustc-link-lib=static=rumpdev_bpf");
-    println!("cargo:rustc-link-lib=static=rumpnet_config");
-    println!("cargo:rustc-link-lib=static=rumpnet_netinet");
-    println!("cargo:rustc-link-lib=static=rumpnet_net");
-    println!("cargo:rustc-link-lib=static=rumpnet");
-    println!("cargo:rustc-link-lib=static=rumpvfs");
-    println!("cargo:rustc-link-lib=static=rumpfs_tmpfs");
-    //println!("cargo:rustc-link-lib=static=rumpfs_kernfs");
-    //println!("cargo:rustc-link-lib=static=rumpfs_null");
+    //println!("cargo:rustc-link-lib=static=rump");
+    //println!("cargo:rustc-link-lib=static=rumpdev_bpf");
+    //println!("cargo:rustc-link-lib=static=rumpnet_config");
+    //println!("cargo:rustc-link-lib=static=rumpnet_netinet");
+    //println!("cargo:rustc-link-lib=static=rumpnet_net");
+    //println!("cargo:rustc-link-lib=static=rumpnet");
+    //println!("cargo:rustc-link-lib=static=rumpvfs");
+    //println!("cargo:rustc-link-lib=static=rumpfs_tmpfs");
 }
