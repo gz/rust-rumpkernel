@@ -11,5 +11,5 @@ homepage = "https://github.com/gz/rust-rumpkernel"
 repository = "https://github.com/gz/rust-rumpkernel"
 
 [build-dependencies]
-git2 = "0.8"
+#git2 = "0.8"
 num_cpus = "1.9"

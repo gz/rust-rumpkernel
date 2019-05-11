@@ -2,7 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use git2::Repository;
+//use git2::Repository;
 use num_cpus;
 
 fn artefacts_built(build_dir: &Path) -> bool {
@@ -39,10 +39,14 @@ fn main() {
 
         println!("CLONE {:?}", out_dir);
         let url = "https://github.com/rumpkernel/buildrump.sh.git";
-        match Repository::clone(url, out_dir.clone()) {
+        Command::new("git")
+            .args(&["clone", "--depth=1", url, out_dir.as_str()])
+            .status()
+            .unwrap();
+        /*match Repository::clone(url, out_dir.clone()) {
             Ok(_) => (),
             Err(e) => panic!("failed to clone: {}", e),
-        };
+        };*/
 
         println!("BUILD {:?}", out_dir);
         env::set_var("TARGET", "x86_64-netbsd");
