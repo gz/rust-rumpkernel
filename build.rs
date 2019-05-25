@@ -63,7 +63,7 @@ fn main() {
 
         let target_os = env::var("CARGO_CFG_TARGET_OS");
         match target_os.as_ref().map(|x| &**x) {
-            Ok("none") => {
+            Ok("none") | Ok("bespin") => {
                 options.push("-V");
                 options.push(r#"RUMP_KERNEL_IS_LIBC=1"#)
             }
