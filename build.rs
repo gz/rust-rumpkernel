@@ -53,13 +53,9 @@ fn main() {
         env::set_var("MKSTATICLIB", "yes");
 
         let cpus = format!("{}", num_cpus::get());
-        let mut options = vec![
-            "-k",
-            "-j",
-            cpus.as_str(),
-            "-F",
-            r#"CFLAGS=-Wimplicit-fallthrough=0"#,
-        ];
+        // -w disables all GCC warnings; a drastic method to ensure that the rump code-base
+        // compiles with newer compilers
+        let mut options = vec!["-k", "-j", cpus.as_str(), "-F", r#"CFLAGS=-w"#];
 
         let target_os = env::var("CARGO_CFG_TARGET_OS");
         match target_os.as_ref().map(|x| &**x) {
