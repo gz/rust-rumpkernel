@@ -10,4 +10,4 @@ before_install:
   - sudo apt-get install -y build-essential
 
 script:
-  - cargo build -vv
+  - cargo build
