@@ -1,112 +1,122 @@
 use std::env;
-use std::io;
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 
-//use git2::Repository;
 use num_cpus;
 
+/// Verify that necessary files have been built.
 fn artefacts_built(build_dir: &Path) -> bool {
-    build_dir.join("rump/lib/librumpdev_bpf.so").exists()
-        && build_dir.join("rump/lib/librumpnet_config.so").exists()
-        && build_dir.join("rump/lib/librumpnet_netinet.so").exists()
-        && build_dir.join("rump/lib/librumpnet_net.so").exists()
-        && build_dir.join("rump/lib/librumpnet.so").exists()
-        && build_dir.join("rump/lib/librumpfs_tmpfs.so").exists()
-        && build_dir.join("rump/lib/librumpvfs.so").exists()
-        && build_dir.join("rump/lib/librumpdev_pci.so").exists()
-        && build_dir.join("rump/lib/librumpdev_pci_if_iwn.so").exists()
-}
-
-fn usermtree() -> io::Result<ExitStatus> {
-    let include_dirs = &[
-        "adosfs",
-        "altq",
-        "arpa",
-        "c++",
-        "c++/experimental",
-        "c++/ext",
-        "crypto",
-        "dev",
-        "filecorefs",
-        "fs",
-        "i386",
-        "isofs",
-        "miscfs",
-        "msdosfs",
-        "net",
-        "net80211",
-        "netatalk",
-        "netbt",
-        "netinet",
-        "netinet6",
-        "netipsec",
-        "netisdn",
-        "netkey",
-        "netmpls",
-        "netnatm",
-        "netsmb",
-        "nfs",
-        "ntfs",
-        "openssl",
-        "pcap",
-        "ppath",
-        "prop",
-        "protocols",
-        "rpc",
-        "rpcsvc",
-        "rumprun",
-        "ssp",
-        "sys",
-        "ufs",
-        "uvm ",
-        "x86",
+    let libs = vec![
+        "libc.a",
+        "libpthread.a",
+        "librump.a",
+        "librumpdev.a",
+        "librumpdev_audio.a",
+        "librumpdev_audio_ac97.a",
+        "librumpdev_bpf.a",
+        "librumpdev_cgd.a",
+        "librumpdev_disk.a",
+        "librumpdev_dm.a",
+        "librumpdev_drvctl.a",
+        "librumpdev_fss.a",
+        "librumpdev_hdaudio_hdafg.a",
+        "librumpdev_md.a",
+        "librumpdev_miiphy.a",
+        "librumpdev_netsmb.a",
+        "librumpdev_opencrypto.a",
+        "librumpdev_pad.a",
+        "librumpdev_pci.a",
+        "librumpdev_pci_auich.a",
+        "librumpdev_pci_eap.a",
+        "librumpdev_pci_hdaudio.a",
+        "librumpdev_pci_if_iwn.a",
+        "librumpdev_pci_if_pcn.a",
+        "librumpdev_pci_if_wm.a",
+        "librumpdev_pci_usbhc.a",
+        "librumpdev_pci_virtio.a",
+        "librumpdev_pud.a",
+        "librumpdev_putter.a",
+        "librumpdev_raidframe.a",
+        "librumpdev_rnd.a",
+        "librumpdev_scsipi.a",
+        "librumpdev_sysmon.a",
+        "librumpdev_ubt.a",
+        "librumpdev_ucom.a",
+        "librumpdev_ugenhc.a",
+        "librumpdev_ulpt.a",
+        "librumpdev_umass.a",
+        "librumpdev_usb.a",
+        "librumpdev_virtio_if_vioif.a",
+        "librumpdev_virtio_ld.a",
+        "librumpdev_virtio_viornd.a",
+        "librumpdev_virtio_vioscsi.a",
+        "librumpdev_vnd.a",
+        "librumpdev_wscons.a",
+        "librumpfs_cd9660.a",
+        "librumpfs_efs.a",
+        "librumpfs_ext2fs.a",
+        "librumpfs_fdesc.a",
+        "librumpfs_ffs.a",
+        "librumpfs_hfs.a",
+        "librumpfs_kernfs.a",
+        "librumpfs_lfs.a",
+        "librumpfs_mfs.a",
+        "librumpfs_msdos.a",
+        "librumpfs_nfs.a",
+        "librumpfs_nfsserver.a",
+        "librumpfs_nilfs.a",
+        "librumpfs_ntfs.a",
+        "librumpfs_null.a",
+        "librumpfs_ptyfs.a",
+        "librumpfs_smbfs.a",
+        "librumpfs_syspuffs.a",
+        "librumpfs_sysvbfs.a",
+        "librumpfs_tmpfs.a",
+        "librumpfs_udf.a",
+        "librumpfs_umap.a",
+        "librumpfs_union.a",
+        "librumpfs_v7fs.a",
+        "librumpkern_crypto.a",
+        "librumpkern_sljit.a",
+        "librumpkern_sys_linux.a",
+        "librumpkern_sysproxy.a",
+        "librumpkern_tty.a",
+        "librumpkern_z.a",
+        "librumpnet.a",
+        "librumpnet_agr.a",
+        "librumpnet_bpfjit.a",
+        "librumpnet_bridge.a",
+        "librumpnet_config.a",
+        "librumpnet_gif.a",
+        "librumpnet_local.a",
+        "librumpnet_net80211.a",
+        "librumpnet_net.a",
+        "librumpnet_netbt.a",
+        "librumpnet_netinet6.a",
+        "librumpnet_netinet.a",
+        "librumpnet_netmpls.a",
+        "librumpnet_npf.a",
+        "librumpnet_pppoe.a",
+        "librumpnet_shmif.a",
+        "librumpnet_sockin.a",
+        "librumpnet_tap.a",
+        "librumpvfs.a",
+        "librumpvfs_aio.a",
+        "librumpvfs_fifofs.a",
+        "librumpvfs_layerfs.a",
+        "librumpkern_mman.a",
     ];
 
-    for dir in include_dirs {
-        let cmd = Command::new("mkdir");
-        let out_dir = "{}/include/{}";
-        cmd.args(&["-p"])
-    }
+    let rump_libs_folder =
+        build_dir.join("obj-amd64-bespin/dest.stage/rumprun-x86_64/lib/rumprun-bespin/");
+
+    // Check that all files exist now
+    libs.iter()
+        .map(|lib| rump_libs_folder.join(lib).exists())
+        .all(|b| b)
 }
 
-/// Builds a 'user-space' library of the rumpkernel
-/// i.e. things like pthread, libc etc.
-fn makeuserlib(make_path: &Path, lib: &Path) -> io::Result<ExitStatus> {
-    let mut make = Command::new(make_path);
-    let cpus = format!("{}", num_cpus::get()).as_str();
-
-    eprintln!("makeuserlib: {:?} obj", lib);
-    make.args(&["obj"]).current_dir(lib).status()?;
-
-    eprintln!("makeuserlib: {:?} dependall", lib);
-    make.args(&[
-        "MKMAN=no",
-        "MKLINT=no",
-        "MKPROFILE=no",
-        "MKYP=no",
-        "MKNLS=no",
-        "NOGCCERROR=1",
-        "HAVE_LIBGCC_EH=yes",
-        "-j4",
-        "dependall",
-    ])
-    .current_dir(lib)
-    .status()?;
-
-    eprintln!("makeuserlib: {:?} install", lib);
-    make.args(&[
-        "MKMAN=no",
-        "MKLINT=no",
-        "MKPROFILE=no",
-        "MKYP=no",
-        "-j4",
-        "install",
-    ])
-    .current_dir(lib)
-    .status()
-}
-
+/// Clones rumprun repo and builds the rumpkernel libraries.
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir_path = PathBuf::from(out_dir.clone());
@@ -128,95 +138,45 @@ fn main() {
             .unwrap();
 
         println!("CLONE {:?}", out_dir);
-        let url = "https://github.com/rumpkernel/buildrump.sh.git";
+        let url = "https://github.com/gz/rumprun.git";
         Command::new("git")
             .args(&["clone", "--depth=1", url, out_dir.as_str()])
             .status()
             .unwrap();
 
-        println!("BUILD {:?}", out_dir);
-        env::set_var("TARGET", "x86_64-netbsd");
-        env::set_var("MKSTATICLIB", "yes");
-
-        let cpus = format!("{}", num_cpus::get());
-        // -w disables all GCC warnings; a drastic method to ensure that the rump code-base
-        // compiles with newer compilers
-        //
-        // -k: means we don't build user-space libraries like libc
-        let buildrump_arguments = &[
-            "-j",
-            cpus.as_str(),
-            "-F",
-            r#"CFLAGS=-w"#,
-            "-V",
-            r#"RUMP_KERNEL_IS_LIBC=1"#,
-            "checkout",
-            "fullbuild",
-        ];
-
-        // For options see also:
-        // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
-        // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
-        Command::new("./buildrump.sh")
-            .args(buildrump_arguments)
+        println!("INIT SUBMODULES {:?}", out_dir);
+        Command::new("git")
+            .args(&["submodule", "update", "--init"])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
 
-        println!("BUILD PCI {:?}", out_dir);
-        println!("OUT_DIR {:?}", out_dir);
-
-        let rump_top = out_dir_path.join("src/sys/rump/");
-        let mkconfig = out_dir_path.join("obj/tooldir/mk.conf");
-        let toolflags = out_dir_path.join("obj/tooldir/toolchain-conf.mk");
-        assert!(rump_top.exists());
-        assert!(mkconfig.exists());
-        assert!(toolflags.exists());
-
-        env::set_var("TOPRUMP", rump_top.as_path());
-        env::set_var("RUMPRUN_MKCONF", mkconfig.as_path());
-        env::set_var("BUILDRUMP_TOOLFLAGS", toolflags.as_path());
-
-        env::set_var("BUILDRUMP_MACHINE", "amd64");
-        env::set_var("BUILDRUMP_MACHINE_GNU_ARCH", "x86_64");
-        env::set_var("MACHINE", "amd64");
-        env::set_var("MACHINE_GNU_ARCH", "x86_64");
-
-        let rumpmake = out_dir_path.join("obj/tooldir/rumpmake");
-        assert!(rumpmake.exists());
-
-        Command::new(rumpmake.as_path())
-            .args(&["obj", "dependall", "install"])
-            .current_dir(&Path::new("./pci_build"))
+        println!("BUILD {:?}", out_dir);
+        // CFLAGS=-w: disables all GCC warnings; a drastic method to ensure that the rump
+        // code-base compiles also with newer compilers
+        //
+        // For more possible options/configurations see also:
+        // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
+        // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
+        let cpus = format!("{}", num_cpus::get());
+        let build_args = &["-j", cpus.as_str(), "bespin", "--", "-F", r#"CFLAGS=-w"#];
+        Command::new("./build-rr.sh")
+            .args(build_args)
+            .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
 
-        let user_libs = &[
-            "src/lib/libc",
-            "src/lib/libcrypt",
-            "src/lib/libipsec",
-            "src/lib/libkvm",
-            "src/lib/libm",
-            "src/lib/libnpf",
-            "src/lib/libprop",
-            "src/lib/libpthread",
-            "src/lib/librmt",
-            "src/lib/libutil",
-            "src/lib/liby",
-            "src/lib/libz",
-            "src/external/bsd/flex",
-            "src/external/bsd/libpcap/lib",
-            "src/external/bsd/libc++",
-        ];
-
-        // build the relevant 'user-space' libraries
-        for lib in user_libs {
-            let make = rumpmake.as_path();
-            makeuserlib(make, out_dir_path.join(lib).as_path())
-                .expect(format!("Can't build {}", lib).as_str());
-        }
+        println!("OUT_DIR {:?}", out_dir);
     }
 
     assert!(artefacts_built(out_dir_path.as_path()));
-    println!("cargo:rustc-link-search=native={}/rump/lib", out_dir);
+
+    let rump_libs_folder =
+        out_dir_path.join("obj-amd64-bespin/dest.stage/rumprun-x86_64/lib/rumprun-bespin/");
+
+    // Add folder to the sarch path
+    println!(
+        "cargo:rustc-link-search=native={}",
+        rump_libs_folder.as_path().display()
+    );
 }
