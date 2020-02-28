@@ -10,6 +10,8 @@ build = "build.rs"
 homepage = "https://github.com/gz/rust-rumpkernel"
 repository = "https://github.com/gz/rust-rumpkernel"
 
+links = "rkapps"
+
 [build-dependencies]
 #git2 = "0.8"
 num_cpus = "1.9"

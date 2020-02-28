@@ -179,4 +179,9 @@ fn main() {
         "cargo:rustc-link-search=native={}",
         rump_libs_folder.as_path().display()
     );
+
+    // Pass bin path via cargo env variable
+    let bin_path = out_dir_path.join("rumprun/bin");
+
+    println!("cargo:bin_target={}", bin_path.as_path().display());
 }
