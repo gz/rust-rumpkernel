@@ -111,9 +111,13 @@ fn artefacts_built(build_dir: &Path) -> bool {
         build_dir.join("obj-amd64-bespin/dest.stage/rumprun-x86_64/lib/rumprun-bespin/");
 
     // Check that all files exist now
-    libs.iter()
-        .map(|lib| rump_libs_folder.join(lib).exists())
-        .all(|b| b)
+    for lib in libs.iter() {
+        if !rump_libs_folder.join(lib).exists() {
+            eprintln!("{:?} was not built", lib);
+            return false;
+        }
+    }
+    return true;
 }
 
 /// Clones rumprun repo and builds the rumpkernel libraries.
@@ -140,13 +144,20 @@ fn main() {
         println!("CLONE {:?}", out_dir);
         let url = "https://github.com/gz/rumprun.git";
         Command::new("git")
-            .args(&["clone", "--depth=1", url, out_dir.as_str()])
+            .args(&["clone", url, out_dir.as_str()])
+            .status()
+            .unwrap();
+
+        println!("CHECKOUT netbsd-8 {:?}", out_dir);
+        Command::new("git")
+            .args(&["checkout", "netbsd-8"])
+            .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
 
         println!("INIT SUBMODULES {:?}", out_dir);
         Command::new("git")
-            .args(&["submodule", "update", "--init"])
+            .args(&["submodule", "update", "--init", "--depth", "1"])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
