@@ -14,3 +14,16 @@ git checkout netbsd-8
 git submodule update --init --depth 1
 ./build-rr.sh -j12 bespin -- -F "CFLAGS=-w"
 ```
+
+## Interesting defines (in build-rr.sh)
+
+<https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts>
+
+`RUMP_CURLWP=hypercall` (slower) or `RUMP_CURLWP=__thread` (faster)
+
+Works on >1 cores:
+`RUMP_DIAGNOSTIC`
+
+Doesn't work with cores > 1:
+`RUMP_LOCKDEBUG`
+`RUMP_DEBUG`
