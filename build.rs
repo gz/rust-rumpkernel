@@ -148,9 +148,9 @@ fn main() {
             .status()
             .unwrap();
 
-        println!("CHECKOUT netbsd-8 {:?}", out_dir);
+        println!("CHECKOUT netbsd-8-leveldb {:?}", out_dir);
         Command::new("git")
-            .args(&["checkout", "netbsd-8"])
+            .args(&["checkout", "netbsd-8-leveldb"])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
