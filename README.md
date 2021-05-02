@@ -12,7 +12,7 @@ The build roughly the following steps as part of the `build.rs` script:
 git clone https://github.com/gz/rumprun.git
 git checkout netbsd-8
 git submodule update --init --depth 1
-./build-rr.sh -j12 bespin -- -F "CFLAGS=-w"
+./build-rr.sh -j12 nrk -- -F "CFLAGS=-w"
 ```
 
 ## Interesting defines (in build-rr.sh)

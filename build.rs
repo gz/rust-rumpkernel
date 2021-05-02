@@ -108,7 +108,7 @@ fn artefacts_built(build_dir: &Path) -> bool {
     ];
 
     let rump_libs_folder =
-        build_dir.join("obj-amd64-bespin/dest.stage/rumprun-x86_64/lib/rumprun-bespin/");
+        build_dir.join("obj-amd64-nrk/dest.stage/rumprun-x86_64/lib/rumprun-nrk/");
 
     // Check that all files exist now
     for lib in libs.iter() {
@@ -170,7 +170,7 @@ fn main() {
         // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
         // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
         let cpus = format!("{}", num_cpus::get());
-        let build_args = &["-j", cpus.as_str(), "bespin", "--", "-F", r#"CFLAGS=-w"#];
+        let build_args = &["-j", cpus.as_str(), "nrk", "--", "-F", r#"CFLAGS=-w"#];
         Command::new("./build-rr.sh")
             .args(build_args)
             .current_dir(&Path::new(&out_dir))
@@ -183,7 +183,7 @@ fn main() {
     assert!(artefacts_built(out_dir_path.as_path()));
 
     let rump_libs_folder =
-        out_dir_path.join("obj-amd64-bespin/dest.stage/rumprun-x86_64/lib/rumprun-bespin/");
+        out_dir_path.join("obj-amd64-nrk/dest.stage/rumprun-x86_64/lib/rumprun-nrk/");
 
     // Add folder to the sarch path
     println!(
