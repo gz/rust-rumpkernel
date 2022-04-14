@@ -150,7 +150,7 @@ fn main() {
 
         println!("CHECKOUT netbsd-8 {:?}", out_dir);
         Command::new("git")
-            .args(&["checkout", "9669febf5c58ae4dd93819efcfdc16a4fc5e1671"])
+            .args(&["checkout", "e06a2b0f2e18f1c1dd0776ad306145efa82bfae4"])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
@@ -166,11 +166,14 @@ fn main() {
         // CFLAGS=-w: disables all GCC warnings; a drastic method to ensure that the rump
         // code-base compiles also with newer compilers
         //
+        // CFLAGS=-fcommon: ignores forgotten extern declarations (lots of them in NetBSD)
+        // no longer the default with GCC>=10
+        //
         // For more possible options/configurations see also:
         // https://github.com/rumpkernel/wiki/wiki/Performance:-compile-options
         // https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/rump/README.compileopts
         let cpus = format!("{}", num_cpus::get());
-        let build_args = &["-j", cpus.as_str(), "nrk", "--", "-F", r#"CFLAGS=-w"#];
+        let build_args = &["-j", cpus.as_str(), "nrk", "--", "-F", r#"CFLAGS=-w -fcommon"#];
         Command::new("./build-rr.sh")
             .args(build_args)
             .current_dir(&Path::new(&out_dir))
