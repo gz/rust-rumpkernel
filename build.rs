@@ -150,7 +150,7 @@ fn main() {
 
         println!("CHECKOUT netbsd-8 {:?}", out_dir);
         Command::new("git")
-            .args(&["checkout", "e06a2b0f2e18f1c1dd0776ad306145efa82bfae4"])
+            .args(&["checkout", "4e5e01d071717881283d32f34fcfc3d866db0ac5"])
             .current_dir(&Path::new(&out_dir))
             .status()
             .unwrap();
